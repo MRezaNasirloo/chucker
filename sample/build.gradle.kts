@@ -1,14 +1,17 @@
+import com.google.protobuf.gradle.*
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.wire)
+//    alias(libs.plugins.wire)
     alias(libs.plugins.apollo)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.protobuf) // Added protobuf plugin
 }
 
-wire {
-    kotlin {}
-}
+//wire {
+//    kotlin {}
+//}
 
 android {
     compileSdk = rootProject.extra["compileSdkVersion"] as Int
@@ -65,6 +68,14 @@ android {
         disable.addAll(listOf("AcceptsUserCertificates", "GradleDependency"))
         warningsAsErrors = true
     }
+    sourceSets {
+        named("main") {
+            java {
+                srcDir("build/generated/source/proto/main/grpc")
+                srcDir("build/generated/source/proto/main/java")
+            }
+        }
+    }
 }
 
 apollo {
@@ -74,6 +85,25 @@ apollo {
         srcDir("src/main/graphql")
         excludes.add("**/schema.json.graphql")
         excludes.add("**/schema.json")
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = libs.protoc.protoc.get().toString()
+    }
+    plugins {
+        id("grpc") {
+            artifact = libs.protoc.gen.grpc.java.get().toString()// Corrected alias
+        }
+    }
+    generateProtoTasks {
+        all().forEach {
+            it.plugins {
+                id("java")
+                id("grpc")
+            }
+        }
     }
 }
 
@@ -106,6 +136,14 @@ dependencies {
     implementation(libs.androidx.material3.window.size)
 
     debugImplementation(libs.leakcanary.android)
+
+    // Added gRPC and Protobuf dependencies
+    implementation(libs.grpc.android) // You already had this, good.
+    implementation(libs.grpc.okhttp)
+    implementation(libs.grpc.protobuf.lite)
+    implementation(libs.grpc.stub)
+    implementation(libs.grpc.netty.shaded) // For the embedded server
+    implementation(libs.protobuf.javalite)
 }
 
 apply(from = rootProject.file("gradle/kotlin-static-analysis.gradle"))

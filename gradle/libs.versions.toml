@@ -1,5 +1,5 @@
 [versions]
-androidGradlePlugin = "8.12.2"
+androidGradlePlugin = "8.11.1"
 converterGson = "3.0.0"
 core = "1.7.0"
 coreTesting = "2.2.0"
@@ -58,6 +58,13 @@ androidxEspresso = "3.7.0"
 nexusPublishPlugin = "2.0.0"
 uiTestJunit4 = "1.9.0"
 
+# Added for gRPC
+grpc = "1.75.0"
+protobuf = "3.21.12"
+protobufGradlePlugin = "0.9.4"
+protocGenGrpcJava = "1.75.0"
+
+
 [libraries]
 # Google Libraries
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity" }
@@ -76,6 +83,8 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 dec = { module = "org.brotli:dec", version.ref = "dec" }
+grpc-android = { module = "io.grpc:grpc-android", version.ref = "grpc" }
+grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc" }
 jetbrains-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junitJupiterParams" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
@@ -122,6 +131,15 @@ truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "uiTestJunit4" }
 
+# gRPC and Protobuf
+grpc-okhttp = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
+grpc-protobuf-lite = { group = "io.grpc", name = "grpc-protobuf", version.ref = "grpc" }
+grpc-stub = { group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
+grpc-netty-shaded = { group = "io.grpc", name = "grpc-netty-shaded", version.ref = "grpc" } # For the server
+protobuf-javalite = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf" }
+protoc-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" } # Compiler
+protoc-gen-grpc-java = { group = "io.grpc", name = "protoc-gen-grpc-java", version.ref = "protocGenGrpcJava" } # gRPC Java generator
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
@@ -135,4 +153,5 @@ kotlinx-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-co
 wire = { id = "com.squareup.wire", version.ref = "wire" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublishPlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufGradlePlugin" }
 

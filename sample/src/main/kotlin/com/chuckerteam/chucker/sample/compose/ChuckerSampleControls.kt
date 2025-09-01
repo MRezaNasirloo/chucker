@@ -1,3 +1,4 @@
+
 package com.chuckerteam.chucker.sample.compose
 
 import android.content.res.Configuration
@@ -31,25 +32,13 @@ import com.chuckerteam.chucker.sample.compose.testtags.ChuckerTestTags
 import com.chuckerteam.chucker.sample.compose.theme.AppAccentColor
 import com.chuckerteam.chucker.sample.compose.theme.ChuckerTheme
 
-/**
- * A container for the main controls and actions in the Chucker sample app.
- *
- * @param selectedInterceptorType current interceptor selection.
- * @param onInterceptorTypeChange called when user selects a different interceptor.
- * @param onInterceptorTypeLabelClick called when the interceptor label is clicked.
- * @param onDoHttp performs an HTTP call.
- * @param onDoGraphQL performs a GraphQL call.
- * @param onLaunchChucker launches Chucker UI directly.
- * @param onExportToLogFile exports logs to file.
- * @param onExportToHarFile exports HAR to file.
- * @param isChuckerInOpMode controls visibility of Chucker-specific operations.
- */
 @Composable
 internal fun ChuckerSampleControls(
     selectedInterceptorType: InterceptorType,
     onInterceptorTypeChange: (InterceptorType) -> Unit,
     onInterceptorTypeLabelClick: () -> Unit,
     onDoHttp: () -> Unit,
+    onDoGrpc: () -> Unit, // Added for gRPC
     onDoGraphQL: () -> Unit,
     onLaunchChucker: () -> Unit,
     onExportToLogFile: () -> Unit,
@@ -57,29 +46,23 @@ internal fun ChuckerSampleControls(
     isChuckerInOpMode: Boolean,
     isExpandedWidth: Boolean = false,
 ) {
-    val modifier =
-        if (isExpandedWidth) {
-            Modifier.fillMaxWidth()
-        } else {
-            Modifier
-                .widthIn(max = 500.dp)
-                .fillMaxWidth()
-        }
+    val modifier = if (isExpandedWidth) {
+        Modifier.fillMaxWidth()
+    } else {
+        Modifier
+            .widthIn(max = 500.dp)
+            .fillMaxWidth()
+    }
     val interceptorTypeLabel = stringResource(R.string.interceptor_type)
     Text(
         text = interceptorTypeLabel,
         style = MaterialTheme.typography.bodyLarge,
         color = AppAccentColor,
         textDecoration = TextDecoration.Underline,
-        modifier =
-            modifier
-                .testTag(ChuckerTestTags.CONTROLS_INTERCEPTOR_TYPE_LABEL)
-                .clearAndSetSemantics {
-                    contentDescription =
-                        "$interceptorTypeLabel, opens external link, double tap to activate"
-                }.clickable {
-                    onInterceptorTypeLabelClick.invoke()
-                },
+        modifier = modifier
+            .testTag(ChuckerTestTags.CONTROLS_INTERCEPTOR_TYPE_LABEL)
+            .clearAndSetSemantics { contentDescription = "$interceptorTypeLabel, opens external link, double tap to activate" }
+            .clickable { onInterceptorTypeLabelClick.invoke() },
     )
 
     Spacer(modifier = Modifier.height(4.dp))
@@ -106,19 +89,16 @@ internal fun ChuckerSampleControls(
 
     Spacer(modifier = Modifier.height(4.dp))
 
-    val buttonTags =
-        listOf(
-            ChuckerTestTags.CONTROLS_DO_HTTP_BUTTON,
-            ChuckerTestTags.CONTROLS_DO_GRAPHQL_BUTTON,
-        )
-
-    listOf(
+    val buttonActions = listOf(
         stringResource(R.string.do_http_activity) to onDoHttp,
+        stringResource(R.string.do_grpc_activity) to onDoGrpc, // Added gRPC action
         stringResource(R.string.do_graphql_activity) to onDoGraphQL,
-    ).forEachIndexed { index, (label, action) ->
+    )
+
+    buttonActions.forEach { (label, action) ->
         Button(
             onClick = action,
-            modifier = modifier.testTag(buttonTags[index]),
+            modifier = modifier,
             shape = RoundedCornerShape(4.dp),
         ) {
             Text(text = label)
@@ -129,14 +109,9 @@ internal fun ChuckerSampleControls(
         Button(
             onClick = onLaunchChucker,
             modifier = modifier.testTag(ChuckerTestTags.CONTROLS_LAUNCH_CHUCKER_BUTTON),
-            shape =
-                androidx.compose.foundation.shape
-                    .RoundedCornerShape(4.dp),
+            shape = RoundedCornerShape(4.dp),
         ) {
-            Text(
-                text =
-                    stringResource(R.string.launch_chucker_directly),
-            )
+            Text(text = stringResource(R.string.launch_chucker_directly))
         }
     }
 
@@ -148,23 +123,15 @@ internal fun ChuckerSampleControls(
         ) {
             Button(
                 onClick = onExportToLogFile,
-                modifier =
-                    Modifier.weight(1f).testTag(ChuckerTestTags.CONTROLS_EXPORT_LOG_BUTTON),
-                shape =
-                    androidx.compose.foundation.shape
-                        .RoundedCornerShape(4.dp),
+                modifier = Modifier.weight(1f).testTag(ChuckerTestTags.CONTROLS_EXPORT_LOG_BUTTON),
+                shape = RoundedCornerShape(4.dp),
             ) {
                 Text(stringResource(R.string.export_to_file))
             }
             Button(
                 onClick = onExportToHarFile,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .testTag(ChuckerTestTags.CONTROLS_EXPORT_HAR_BUTTON),
-                shape =
-                    androidx.compose.foundation.shape
-                        .RoundedCornerShape(4.dp),
+                modifier = Modifier.weight(1f).testTag(ChuckerTestTags.CONTROLS_EXPORT_HAR_BUTTON),
+                shape = RoundedCornerShape(4.dp),
             ) {
                 Text(stringResource(R.string.export_to_file_har))
             }
@@ -172,32 +139,7 @@ internal fun ChuckerSampleControls(
     }
 }
 
-@Preview(
-    name = "Phone - Light",
-    device = Devices.PIXEL_4,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
-@Preview(
-    name = "Phone - Dark",
-    device = Devices.PIXEL_4,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-)
-@Preview(
-    name = "Phone Scaled - Light",
-    device = Devices.PIXEL_4,
-    showBackground = true,
-    fontScale = 1.5f,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
-@Preview(
-    name = "Phone – Light (Landscape)",
-    device = Devices.AUTOMOTIVE_1024p,
-    widthDp = 1024,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
+@Preview(showBackground = true)
 @Composable
 private fun ChuckerSampleControlsPreview() {
     ChuckerTheme {
@@ -207,75 +149,14 @@ private fun ChuckerSampleControlsPreview() {
         ) {
             ChuckerSampleControls(
                 selectedInterceptorType = InterceptorType.NETWORK,
-                onInterceptorTypeChange = {
-                    // DO Nothing
-                },
-                onInterceptorTypeLabelClick = {
-                    // DO Nothing
-                },
-                onDoHttp = {
-                    // DO Nothing
-                },
-                onDoGraphQL = {
-                    // DO Nothing
-                },
-                onLaunchChucker = {
-                    // DO Nothing
-                },
-                onExportToLogFile = {
-                    // DO Nothing
-                },
-                onExportToHarFile = {
-                    // DO Nothing
-                },
-                isChuckerInOpMode = true,
-            )
-        }
-    }
-}
-
-@Preview(
-    name = "Tablet - Light",
-    device = Devices.NEXUS_10,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
-@Preview(
-    name = "Tablet - Dark",
-    device = Devices.NEXUS_10,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-)
-@Composable
-private fun ChuckerSampleControlsTabletPreview() {
-    ChuckerTheme {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            ChuckerSampleControls(
-                selectedInterceptorType = InterceptorType.NETWORK,
-                onInterceptorTypeChange = {
-                    // DO Nothing
-                },
-                onInterceptorTypeLabelClick = {
-                    // DO Nothing
-                },
-                onDoHttp = {
-                    // DO Nothing
-                },
-                onDoGraphQL = {
-                    // DO Nothing
-                },
-                onLaunchChucker = {
-                    // DO Nothing
-                },
-                onExportToLogFile = {
-                    // DO Nothing
-                },
-                onExportToHarFile = {
-                    // DO Nothing
-                },
+                onInterceptorTypeChange = {},
+                onInterceptorTypeLabelClick = {},
+                onDoHttp = {},
+                onDoGrpc = {},
+                onDoGraphQL = {},
+                onLaunchChucker = {},
+                onExportToLogFile = {},
+                onExportToHarFile = {},
                 isChuckerInOpMode = true,
             )
         }

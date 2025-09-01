@@ -17,18 +17,12 @@ fun createOkHttpClient(
     context: Context,
     interceptorTypeProvider: InterceptorType.Provider,
 ): OkHttpClient {
-    val collector =
-        ChuckerCollector(
-            context = context,
-            showNotification = true,
-            retentionPeriod = RetentionManager.Period.ONE_HOUR,
-        )
 
     @Suppress("MagicNumber")
     val chuckerInterceptor =
         ChuckerInterceptor
             .Builder(context)
-            .collector(collector)
+            .collector((context.applicationContext as SampleApplication).chuckerCollector)
             .maxContentLength(250_000L)
             .redactHeaders(emptySet())
             .skipPaths("anything")
@@ -38,7 +32,6 @@ fun createOkHttpClient(
 //            .skipDomains("httpbin.org", "postman-echo.com")
 //            .skipDomains(".*akamai.com".toRegex())
             .alwaysReadResponseBody(false)
-            .addBodyDecoder(PokemonProtoBodyDecoder())
             .build()
 
     return OkHttpClient

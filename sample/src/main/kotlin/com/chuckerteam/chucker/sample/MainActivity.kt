@@ -1,9 +1,9 @@
+
 package com.chuckerteam.chucker.sample
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
-import android.os.StrictMode
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -34,13 +34,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private val httpTasks by lazy {
-        listOf(HttpBinHttpTask(client), DummyImageHttpTask(client), PostmanEchoHttpTask(client))
+        listOf(HttpBinHttpTask(client), DummyImageHttpTask(client))
     }
+
+    private val grpcTask by lazy { GrpcTask(this) }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             ChuckerTheme {
                 val windowSize = calculateWindowSizeClass(this)
@@ -58,64 +61,42 @@ class MainActivity : ComponentActivity() {
                             task.run()
                         }
                     },
+                    onDoGrpc = {
+                        grpcTask.execute()
+                    },
                     onDoGraphQL = {
                         GraphQlTask(client).run()
                     },
-                    onLaunchChucker = {
-                        launchChuckerDirectly()
-                    },
-                    onExportToLogFile = {
-                        generateExportFile(ExportFormat.LOG)
-                    },
-                    onExportToHarFile = {
-                        generateExportFile(ExportFormat.HAR)
-                    },
+                    onLaunchChucker = ::launchChuckerDirectly,
+                    onExportToLogFile = { generateExportFile(ExportFormat.LOG) },
+                    onExportToHarFile = { generateExportFile(ExportFormat.HAR) },
                     isChuckerInOpMode = Chucker.isOp,
                 )
             }
         }
 
-        StrictMode.setVmPolicy(
-            StrictMode.VmPolicy
-                .Builder()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .build(),
-        )
+        // Un-comment to enable StrictMode
+        // enableStrictMode()
+    }
 
-        StrictMode.setThreadPolicy(
-            StrictMode.ThreadPolicy
-                .Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .penaltyLog()
-                .penaltyDeath()
-                .build(),
-        )
+    override fun onDestroy() {
+        super.onDestroy()
+        grpcTask.cancel()
     }
 
     private fun launchChuckerDirectly() {
-        // Optionally launch Chucker directly from your own app UI
         startActivity(Chucker.getLaunchIntent(this))
     }
 
     private fun generateExportFile(exportFormat: ExportFormat) {
         lifecycleScope.launch {
-            val uri =
-                withContext(Dispatchers.IO) {
-                    ChuckerCollector(this@MainActivity)
-                        .writeTransactions(this@MainActivity, null, exportFormat)
-                }
+            val uri = withContext(Dispatchers.IO) {
+                ChuckerCollector(this@MainActivity).writeTransactions(this@MainActivity, null, exportFormat)
+            }
             if (uri == null) {
-                Toast
-                    .makeText(
-                        applicationContext,
-                        R.string.export_to_file_failure,
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                Toast.makeText(applicationContext, R.string.export_to_file_failure, Toast.LENGTH_SHORT).show()
             } else {
-                val successMessage =
-                    applicationContext.getString(R.string.export_to_file_success, uri.path)
+                val successMessage = applicationContext.getString(R.string.export_to_file_success, uri.path)
                 Toast.makeText(applicationContext, successMessage, Toast.LENGTH_SHORT).show()
             }
         }
@@ -123,11 +104,9 @@ class MainActivity : ComponentActivity() {
 
     private fun openUrlInBrowser() {
         val url = getString(R.string.interceptor_url)
-        val intent =
-            Intent(Intent.ACTION_VIEW, url.toUri()).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-
+        val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
         try {
             startActivity(Intent.createChooser(intent, "Open with"))
         } catch (e: ActivityNotFoundException) {

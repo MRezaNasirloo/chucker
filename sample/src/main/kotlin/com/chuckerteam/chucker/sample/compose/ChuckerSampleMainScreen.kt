@@ -1,6 +1,6 @@
+
 package com.chuckerteam.chucker.sample.compose
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.chuckerteam.chucker.sample.InterceptorType
@@ -34,24 +33,6 @@ import com.chuckerteam.chucker.sample.R
 import com.chuckerteam.chucker.sample.compose.testtags.ChuckerTestTags
 import com.chuckerteam.chucker.sample.compose.theme.ChuckerTheme
 
-/**
- * Main screen for the Chucker sample app, showing introduction text and controls.
- *
- * - In compact width (phone), it uses a vertical layout with intro text above the controls.
- * - In expanded width (tablet or landscape), it splits into two columns: intro text on the left,
- *   controls on the right.
- *
- * @param widthSizeClass Indicates the current window width size class to switch layouts.
- * @param selectedInterceptorType Currently selected interceptor type (HTTP or GraphQL).
- * @param onInterceptorTypeChange Callback when a new interceptor type is selected by the user.
- * @param onInterceptorTypeLabelClick Callback when the interceptor type label is clicked.
- * @param onDoHttp Called to perform a sample HTTP request.
- * @param onDoGraphQL Called to perform a sample GraphQL request.
- * @param onLaunchChucker Called to open the Chucker transaction list UI.
- * @param onExportToLogFile Called to export network logs to a plaintext file.
- * @param onExportToHarFile Called to export network logs to a HAR (HTTP Archive) file.
- * @param isChuckerInOpMode If true, displays the Chucker-specific operation buttons.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChuckerSampleMainScreen(
@@ -60,6 +41,7 @@ internal fun ChuckerSampleMainScreen(
     onInterceptorTypeChange: (InterceptorType) -> Unit,
     onInterceptorTypeLabelClick: () -> Unit,
     onDoHttp: () -> Unit,
+    onDoGrpc: () -> Unit, // Added for gRPC
     onDoGraphQL: () -> Unit,
     onLaunchChucker: () -> Unit,
     onExportToLogFile: () -> Unit,
@@ -70,17 +52,14 @@ internal fun ChuckerSampleMainScreen(
 
     if (isExpandedWidth) {
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
         ) {
             Column(
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -110,6 +89,7 @@ internal fun ChuckerSampleMainScreen(
                             onInterceptorTypeChange = onInterceptorTypeChange,
                             onInterceptorTypeLabelClick = onInterceptorTypeLabelClick,
                             onDoHttp = onDoHttp,
+                            onDoGrpc = onDoGrpc, // Pass down
                             onDoGraphQL = onDoGraphQL,
                             onLaunchChucker = onLaunchChucker,
                             onExportToLogFile = onExportToLogFile,
@@ -123,23 +103,19 @@ internal fun ChuckerSampleMainScreen(
         }
     } else {
         Scaffold(
-            topBar = {
-                ChuckerSampleTopBar()
-            },
+            topBar = { ChuckerSampleTopBar() },
         ) { innerPadding ->
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             ) {
                 Column(
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -147,17 +123,17 @@ internal fun ChuckerSampleMainScreen(
                         text = stringResource(R.string.intro_body),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        modifier =
-                            Modifier
-                                .widthIn(max = 500.dp)
-                                .fillMaxWidth()
-                                .testTag(ChuckerTestTags.INTRO_BODY_TEXT_COMPACT),
+                        modifier = Modifier
+                            .widthIn(max = 500.dp)
+                            .fillMaxWidth()
+                            .testTag(ChuckerTestTags.INTRO_BODY_TEXT_COMPACT),
                     )
                     ChuckerSampleControls(
                         selectedInterceptorType = selectedInterceptorType,
                         onInterceptorTypeChange = onInterceptorTypeChange,
                         onInterceptorTypeLabelClick = onInterceptorTypeLabelClick,
                         onDoHttp = onDoHttp,
+                        onDoGrpc = onDoGrpc, // Pass down
                         onDoGraphQL = onDoGraphQL,
                         onLaunchChucker = onLaunchChucker,
                         onExportToLogFile = onExportToLogFile,
@@ -170,109 +146,21 @@ internal fun ChuckerSampleMainScreen(
     }
 }
 
-@Preview(
-    name = "Phone - Light",
-    device = Devices.PIXEL_4,
-    showSystemUi = true,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
-@Preview(
-    name = "Phone - Dark",
-    device = Devices.PIXEL_4,
-    showSystemUi = true,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-)
-@Preview(
-    name = "Phone Scaled - Light",
-    device = Devices.PIXEL_4,
-    showSystemUi = true,
-    showBackground = true,
-    fontScale = 1.5f,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
-@Preview(
-    name = "Phone – Light (Landscape)",
-    device = Devices.AUTOMOTIVE_1024p,
-    widthDp = 1024,
-    showSystemUi = true,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
+@Preview(showBackground = true)
 @Composable
 private fun ChuckerSampleMainScreenPreview() {
     ChuckerTheme {
         ChuckerSampleMainScreen(
             widthSizeClass = WindowWidthSizeClass.Compact,
             selectedInterceptorType = InterceptorType.APPLICATION,
-            onInterceptorTypeChange = {
-                // DO Nothing
-            },
-            onInterceptorTypeLabelClick = {
-                // DO Nothing
-            },
-            onDoHttp = {
-                // DO Nothing
-            },
-            onDoGraphQL = {
-                // DO Nothing
-            },
-            onLaunchChucker = {
-                // DO Nothing
-            },
-            onExportToLogFile = {
-                // DO Nothing
-            },
-            onExportToHarFile = {
-                // DO Nothing
-            },
-            isChuckerInOpMode = true,
-        )
-    }
-}
-
-@Preview(
-    name = "Tablet - Light",
-    device = Devices.NEXUS_10,
-    showSystemUi = true,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL,
-)
-@Preview(
-    name = "Tablet - Dark",
-    device = Devices.NEXUS_10,
-    showSystemUi = true,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-)
-@Composable
-private fun ChuckerSampleMainScreenTabletPreview() {
-    ChuckerTheme {
-        ChuckerSampleMainScreen(
-            widthSizeClass = WindowWidthSizeClass.Expanded,
-            selectedInterceptorType = InterceptorType.APPLICATION,
-            onInterceptorTypeChange = {
-                // DO Nothing
-            },
-            onInterceptorTypeLabelClick = {
-                // DO Nothing
-            },
-            onDoHttp = {
-                // DO Nothing
-            },
-            onDoGraphQL = {
-                // DO Nothing
-            },
-            onLaunchChucker = {
-                // DO Nothing
-            },
-            onExportToLogFile = {
-                // DO Nothing
-            },
-            onExportToHarFile = {
-                // DO Nothing
-            },
+            onInterceptorTypeChange = {},
+            onInterceptorTypeLabelClick = {},
+            onDoHttp = {},
+            onDoGrpc = {},
+            onDoGraphQL = {},
+            onLaunchChucker = {},
+            onExportToLogFile = {},
+            onExportToHarFile = {},
             isChuckerInOpMode = true,
         )
     }
